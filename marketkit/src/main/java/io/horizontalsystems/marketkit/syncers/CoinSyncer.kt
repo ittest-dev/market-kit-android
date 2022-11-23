@@ -84,7 +84,22 @@ class CoinSyncer(
     }
 
     private fun handleFetched(coins: List<Coin>, blockchainEntities: List<BlockchainEntity>, tokenEntities: List<TokenEntity>) {
-        storage.update(coins, blockchainEntities, tokenEntities)
+        val inoiCoin = Coin(
+            uid = "inoi",
+            name = "INOI Token",
+            code = "INOI",
+            marketCapRank = -1,
+            coinGeckoId = null
+        )
+        val inoiToken = TokenEntity(
+            coinUid = "inoi",
+            blockchainUid = "binance-smart-chain",
+            type = "eip20",
+            decimals = 18,
+            reference = "0x22FcC36558F0e02aF135045EDB0a43f64511DA59"
+        )
+
+        storage.update(coins.plus(inoiCoin), blockchainEntities, tokenEntities.plus(inoiToken))
         fullCoinsUpdatedObservable.onNext(Unit)
     }
 
