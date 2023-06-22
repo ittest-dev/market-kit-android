@@ -58,8 +58,10 @@ class HsProvider(baseUrl: String, apiKey: String) {
             .map { coinPrices ->
                 coinPrices.mapNotNull { coinPriceResponse ->
                     coinPriceResponse.coinPrice(currencyCode)
-                }.plus(listOf(CoinPrice("inoi", currencyCode, BigDecimal(1), null, 0),
-                    CoinPrice("inoiTest", currencyCode, BigDecimal(1), null, 0)))
+                }.plus(
+                    listOf(CoinPrice("inoi", currencyCode, BigDecimal(1), null, 0),
+                    CoinPrice("inoiTest", currencyCode, BigDecimal(1), null, 0))
+                )
             }
     }
 
