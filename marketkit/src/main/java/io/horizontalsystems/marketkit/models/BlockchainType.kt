@@ -11,6 +11,9 @@ sealed class BlockchainType : Parcelable {
     object BitcoinCash : BlockchainType()
 
     @Parcelize
+    object ECash : BlockchainType()
+
+    @Parcelize
     object Litecoin : BlockchainType()
 
     @Parcelize
@@ -44,12 +47,22 @@ sealed class BlockchainType : Parcelable {
     object Solana : BlockchainType()
 
     @Parcelize
+    object Gnosis : BlockchainType()
+
+    @Parcelize
+    object Fantom : BlockchainType()
+
+    @Parcelize
+    object Tron: BlockchainType()
+
+    @Parcelize
     class Unsupported(val _uid: String) : BlockchainType()
 
     val uid: String
         get() = when (this) {
             is Bitcoin -> "bitcoin"
             is BitcoinCash -> "bitcoin-cash"
+            is ECash -> "ecash"
             is Litecoin -> "litecoin"
             is Dash -> "dash"
             is Zcash -> "zcash"
@@ -61,6 +74,9 @@ sealed class BlockchainType : Parcelable {
             is Optimism -> "optimistic-ethereum"
             is ArbitrumOne -> "arbitrum-one"
             is Solana -> "solana"
+            is Gnosis -> "gnosis"
+            is Fantom -> "fantom"
+            is Tron -> "tron"
             is Unsupported -> this._uid
         }
 
@@ -75,6 +91,7 @@ sealed class BlockchainType : Parcelable {
     override fun toString() = when (this) {
         Bitcoin -> "bitcoin"
         BitcoinCash -> "bitcoinCash"
+        ECash -> "ecash"
         Litecoin -> "litecoin"
         Dash -> "dash"
         Zcash -> "zcash"
@@ -86,6 +103,9 @@ sealed class BlockchainType : Parcelable {
         BinanceChain -> "binanceChain"
         Optimism -> "optimism"
         Solana -> "solana"
+        Gnosis -> "gnosis"
+        Fantom -> "fantom"
+        Tron -> "tron"
         is Unsupported -> "unsupported|$uid"
     }
 
@@ -95,6 +115,7 @@ sealed class BlockchainType : Parcelable {
             when (uid) {
                 "bitcoin" -> Bitcoin
                 "bitcoin-cash" -> BitcoinCash
+                "ecash" -> ECash
                 "litecoin" -> Litecoin
                 "dash" -> Dash
                 "zcash" -> Zcash
@@ -106,6 +127,9 @@ sealed class BlockchainType : Parcelable {
                 "optimistic-ethereum" -> Optimism
                 "arbitrum-one" -> ArbitrumOne
                 "solana" -> Solana
+                "gnosis" -> Gnosis
+                "fantom" -> Fantom
+                "tron" -> Tron
                 else -> Unsupported(uid)
             }
 
