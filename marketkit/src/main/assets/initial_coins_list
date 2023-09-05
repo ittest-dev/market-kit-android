@@ -7309,6 +7309,8 @@ INSERT INTO TokenEntity VALUES('frax-ether','ethereum','eip20',18,'0x5e842234523
 INSERT INTO TokenEntity VALUES('frax-ether','polygon-pos','eip20',18,'0xee327f889d5947c1dc1934bb208a1e792f953e96');
 INSERT INTO TokenEntity VALUES('frax-ether','binance-smart-chain','eip20',18,'0x64048a7eecf3a2f1ba9e144aac3d7db6e58f555e');
 INSERT INTO TokenEntity VALUES('coredaoorg','coredaoorg','native',NULL,NULL);
+INSERT INTO TokenEntity VALUES('inoi','binance-smart-chain','eip20',18,'0x22FcC36558F0e02aF135045EDB0a43f64511DA59');
+INSERT INTO TokenEntity VALUES('inoiTest','binance-smart-chain','eip20',18,'0x22FcC36558F0e02aF135045EDB0a43f64511DA59');
 INSERT INTO TokenEntity VALUES('tominet','ethereum','eip20',18,'0x4385328cc4d643ca98dfea734360c0f596c83449');
 INSERT INTO TokenEntity VALUES('hooked-protocol','binance-smart-chain','eip20',18,'0xa260e12d2b924cb899ae80bb58123ac3fee1e2f0');
 INSERT INTO TokenEntity VALUES('pusd-2','ethereum','eip20',18,'0x466a756e9a7401b5e2444a3fcb3c2c12fbea0a54');
