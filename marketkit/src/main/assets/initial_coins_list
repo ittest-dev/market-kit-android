@@ -7305,6 +7305,8 @@ INSERT INTO Coin VALUES('pepe-coin-bsc','Pepe Coin BSC ','PPC',NULL,'pepe-coin-b
 INSERT INTO Coin VALUES('sui-iou','Sui (IOU)','SUI',NULL,'sui-iou');
 INSERT INTO Coin VALUES('sui','Sui','SUI',99,'sui');
 INSERT INTO Coin VALUES('turbo','Turbo','TURBO',997,'turbo');
+INSERT INTO Coin VALUES('inoi','INOI Token','INOI',-1, NULL);
+INSERT INTO Coin VALUES('inoiTest','INOI Token','INOI',-1, NULL);
 INSERT INTO TokenEntity VALUES('frax-ether','ethereum','eip20',18,'0x5e8422345238f34275888049021821e8e08caa1f');
 INSERT INTO TokenEntity VALUES('frax-ether','polygon-pos','eip20',18,'0xee327f889d5947c1dc1934bb208a1e792f953e96');
 INSERT INTO TokenEntity VALUES('frax-ether','binance-smart-chain','eip20',18,'0x64048a7eecf3a2f1ba9e144aac3d7db6e58f555e');
