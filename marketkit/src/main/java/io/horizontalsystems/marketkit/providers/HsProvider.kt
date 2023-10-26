@@ -1,6 +1,8 @@
 package io.horizontalsystems.marketkit.providers
 
 import com.google.gson.annotations.SerializedName
+import io.horizontalsystems.marketkit.customcurrency.CustomCurrenciesService
+import io.horizontalsystems.marketkit.customcurrency.convertValuesToCustomCurrency
 import io.horizontalsystems.marketkit.models.*
 import io.reactivex.Single
 import retrofit2.http.Field
@@ -12,8 +14,13 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 import java.math.BigDecimal
 import java.util.*
+import java.util.concurrent.TimeUnit
 
-class HsProvider(baseUrl: String, apiKey: String) {
+class HsProvider(
+    baseUrl: String,
+    apiKey: String,
+    private val customCurrenciesService: CustomCurrenciesService
+) {
 
     private val service by lazy {
         RetrofitUtils.build("${baseUrl}/v1/", mapOf("apikey" to apiKey))
@@ -55,34 +62,70 @@ class HsProvider(baseUrl: String, apiKey: String) {
         return service.coinCategoryMarketPoints(categoryUid, timePeriod.value, currencyCode)
     }
 
-    fun getCoinPrices(coinUids: List<String>, currencyCode: String): Single<List<CoinPrice>> {
+    private fun getCoinPricesByDefaultService(
+        coinUids: List<String>,
+        currencyCode: String
+    ): Single<List<CoinPrice>> {
         return service.getCoinPrices(coinUids.joinToString(separator = ","), currencyCode)
             .map { coinPrices ->
                 coinPrices.mapNotNull { coinPriceResponse ->
                     coinPriceResponse.coinPrice(currencyCode)
                 }.plus(
-                    listOf(CoinPrice("inoi", currencyCode, BigDecimal(1), null, 0),
-                    CoinPrice("inoiTest", currencyCode, BigDecimal(1), null, 0))
+                    listOf(
+                        CoinPrice("inoi", currencyCode, BigDecimal(1), null, 0),
+                        CoinPrice("inoiTest", currencyCode, BigDecimal(1), null, 0)
+                    )
                 )
             }
     }
+
+    fun getCoinPrices(coinUids: List<String>, currencyCode: String): Single<List<CoinPrice>> =
+        customCurrenciesService.fetchCustomCurrency(currencyCode)
+            .timeout(5, TimeUnit.SECONDS)
+            .flatMap { customCurrency ->
+                val coinPricesInDollar = getCoinPricesByDefaultService(coinUids, "USD")
+                coinPricesInDollar.map { prices ->
+                    prices.map { coinPriceInDollar ->
+                        coinPriceInDollar.convertValuesToCustomCurrency(customCurrency)
+                    }
+                }
+            }
+            .onErrorResumeNext { getCoinPricesByDefaultService(coinUids, currencyCode) }
+
 
     fun historicalCoinPriceSingle(
         coinUid: String,
         currencyCode: String,
         timestamp: Long
-    ): Single<HistoricalCoinPriceResponse> {
-        return service.getHistoricalCoinPrice(coinUid, currencyCode, timestamp)
-    }
+    ): Single<HistoricalCoinPriceResponse> =
+        customCurrenciesService.fetchCustomCurrency(currencyCode)
+            .timeout(5, TimeUnit.SECONDS)
+            .flatMap { customCurrency ->
+                val historicalCoinPriceInDollar = service.getHistoricalCoinPrice(coinUid, "USD", timestamp)
+                historicalCoinPriceInDollar.map { it.convertValuesToCustomCurrency(customCurrency) }
+            }
+            .onErrorResumeNext { service.getHistoricalCoinPrice(coinUid, currencyCode, timestamp) }
+
 
     fun coinPriceChartSingle(
         coinUid: String,
         currencyCode: String,
         periodType: HsPointTimePeriod,
         fromTimestamp: Long?
-    ): Single<List<ChartCoinPriceResponse>> {
-        return service.getCoinPriceChart(coinUid, currencyCode, fromTimestamp, periodType.value)
-    }
+    ): Single<List<ChartCoinPriceResponse>> =
+        customCurrenciesService.fetchCustomCurrency(currencyCode)
+            .timeout(5, TimeUnit.SECONDS)
+            .flatMap { customCurrency ->
+                val coinPriceChartsInDollar = service.getCoinPriceChart(coinUid, "USD", fromTimestamp, periodType.value)
+                coinPriceChartsInDollar.map { prices ->
+                    prices.map { coinPriceChartInDollar ->
+                        coinPriceChartInDollar.convertValuesToCustomCurrency(customCurrency)
+                    }
+                }
+            }
+            .onErrorResumeNext { service.getCoinPriceChart(coinUid, currencyCode, fromTimestamp, periodType.value) }
+
+
 
     fun coinPriceChartStartTime(coinUid: String): Single<Long> {
         return service.getCoinPriceChartStart(coinUid).map { it.timestamp }

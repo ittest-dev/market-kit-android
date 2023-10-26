@@ -3,6 +3,7 @@ package io.horizontalsystems.marketkit
 import android.content.Context
 import android.os.storage.StorageManager
 import io.horizontalsystems.marketkit.chart.HsChartRequestHelper
+import io.horizontalsystems.marketkit.customcurrency.CustomCurrenciesService
 import io.horizontalsystems.marketkit.managers.*
 import io.horizontalsystems.marketkit.models.*
 import io.horizontalsystems.marketkit.providers.*
@@ -402,7 +403,8 @@ class MarketKit(
             }
 
             val marketDatabase = MarketDatabase.getInstance(context)
-            val hsProvider = HsProvider(hsApiBaseUrl, hsApiKey)
+            val customCurrenciesService = CustomCurrenciesService.Mock()
+            val hsProvider = HsProvider(hsApiBaseUrl, hsApiKey,customCurrenciesService)
             val hsNftProvider = HsNftProvider(hsApiBaseUrl, hsApiKey)
             val coinGeckoProvider = CoinGeckoProvider("https://api.coingecko.com/api/v3/")
             val defiYieldProvider = DefiYieldProvider(defiYieldApiKey)
