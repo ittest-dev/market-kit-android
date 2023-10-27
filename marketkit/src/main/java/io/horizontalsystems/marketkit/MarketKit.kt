@@ -1,9 +1,11 @@
 package io.horizontalsystems.marketkit
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.storage.StorageManager
 import io.horizontalsystems.marketkit.chart.HsChartRequestHelper
 import io.horizontalsystems.marketkit.customcurrency.CustomCurrenciesService
+import io.horizontalsystems.marketkit.customcurrency.convertValuesToCustomCurrency
 import io.horizontalsystems.marketkit.managers.*
 import io.horizontalsystems.marketkit.models.*
 import io.horizontalsystems.marketkit.providers.*
@@ -13,8 +15,11 @@ import io.horizontalsystems.marketkit.syncers.ExchangeSyncer
 import io.horizontalsystems.marketkit.syncers.HsDataSyncer
 import io.reactivex.Observable
 import io.reactivex.Single
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import java.math.BigDecimal
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class MarketKit(
     private val nftManager: NftManager,
@@ -28,7 +33,8 @@ class MarketKit(
     private val exchangeSyncer: ExchangeSyncer,
     private val globalMarketInfoManager: GlobalMarketInfoManager,
     private val hsProvider: HsProvider,
-    private val hsDataSyncer: HsDataSyncer
+    private val hsDataSyncer: HsDataSyncer,
+    private val customCurrenciesService: CustomCurrenciesService
 ) {
     // Coins
 
@@ -128,27 +134,67 @@ class MarketKit(
 
     // Coin Prices
 
-    fun refreshCoinPrices(currencyCode: String) {
-        coinPriceSyncManager.refresh(currencyCode)
-    }
+    @SuppressLint("CheckResult")
+    fun refreshCoinPrices(currencyCode: String) =
+        customCurrenciesService.fetchCustomCurrencySingle(currencyCode)
+            .timeout(5, TimeUnit.SECONDS)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { customCurrency ->
+                if (customCurrency == null) {
+                    coinPriceSyncManager.refresh(currencyCode)
+                } else {
+                    coinPriceSyncManager.refresh("USD")
+                }
+            }
+
 
     fun coinPrice(coinUid: String, currencyCode: String): CoinPrice? {
-        return coinPriceManager.coinPrice(coinUid, currencyCode)
+        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+        return if(customCurrency == null)
+            coinPriceManager.coinPrice(coinUid, currencyCode)
+        else{
+            val coinPriceInDollars = coinPriceManager.coinPrice(coinUid, "USD")
+            coinPriceInDollars?.convertValuesToCustomCurrency(customCurrency)
+        }
     }
 
     fun coinPriceMap(coinUids: List<String>, currencyCode: String): Map<String, CoinPrice> {
-        return coinPriceManager.coinPriceMap(coinUids, currencyCode)
+        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+        return if(customCurrency == null)
+            coinPriceManager.coinPriceMap(coinUids, currencyCode)
+        else{
+            coinPriceManager.coinPriceMap(coinUids, "USD").mapValues  { (key, value) ->
+                value.convertValuesToCustomCurrency(customCurrency)
+            }
+        }
     }
 
     fun coinPriceObservable(coinUid: String, currencyCode: String): Observable<CoinPrice> {
-        return coinPriceSyncManager.coinPriceObservable(coinUid, currencyCode)
+        return customCurrenciesService.fetchCustomCurrencySingle(currencyCode)
+            .timeout(5, TimeUnit.SECONDS)
+            .flatMapObservable { customCurrency ->
+                coinPriceSyncManager.coinPriceObservable(coinUid, "USD")
+                    .map { it.convertValuesToCustomCurrency(customCurrency) }
+            }
+            .onErrorReturnItem(coinPriceSyncManager.coinPriceObservable(coinUid, currencyCode).blockingFirst())
     }
 
     fun coinPriceMapObservable(
         coinUids: List<String>,
         currencyCode: String
     ): Observable<Map<String, CoinPrice>> {
-        return coinPriceSyncManager.coinPriceMapObservable(coinUids, currencyCode)
+        return customCurrenciesService.fetchCustomCurrencySingle(currencyCode)
+            .timeout(5, TimeUnit.SECONDS)
+            .flatMapObservable { customCurrency ->
+                coinPriceSyncManager.coinPriceMapObservable(coinUids, "USD")
+                    .map { coinPriceMap ->
+                        coinPriceMap.mapValues { (_, coinPrice) ->
+                            coinPrice.convertValuesToCustomCurrency(customCurrency)
+                        }
+                    }
+            }
+            .onErrorReturnItem(coinPriceSyncManager.coinPriceMapObservable(coinUids, currencyCode).blockingFirst())
     }
 
     // Coin Historical Price
@@ -158,15 +204,30 @@ class MarketKit(
         currencyCode: String,
         timestamp: Long
     ): Single<BigDecimal> {
-        return coinHistoricalPriceManager.coinHistoricalPriceSingle(
-            coinUid,
-            currencyCode,
-            timestamp
-        )
+        return customCurrenciesService.fetchCustomCurrencySingle(currencyCode)
+            .timeout(5, TimeUnit.SECONDS)
+            .flatMap { customCurrency ->
+                coinHistoricalPriceManager.coinHistoricalPriceSingle(coinUid, "USD", timestamp)
+                    .map { priceUSD ->
+                        priceUSD.multiply(customCurrency.currencyUnitsPerDollar)
+                    }
+            }
+            .onErrorReturnItem(coinHistoricalPriceManager.coinHistoricalPriceSingle(coinUid, currencyCode, timestamp).blockingGet())
     }
 
     fun coinHistoricalPrice(coinUid: String, currencyCode: String, timestamp: Long): BigDecimal? {
-        return coinHistoricalPriceManager.coinHistoricalPrice(coinUid, currencyCode, timestamp)
+        val customCurrency = try {
+            customCurrenciesService.fetchCustomCurrency(currencyCode)
+        } catch (e: Exception) {
+            null
+        }
+
+        return if (customCurrency != null) {
+            val priceUSD = coinHistoricalPriceManager.coinHistoricalPrice(coinUid, "USD", timestamp)
+            priceUSD?.multiply(customCurrency.currencyUnitsPerDollar)
+        } else {
+            coinHistoricalPriceManager.coinHistoricalPrice(coinUid, currencyCode, timestamp)
+        }
     }
 
     // Posts
@@ -441,7 +502,8 @@ class MarketKit(
                 exchangeSyncer,
                 globalMarketInfoManager,
                 hsProvider,
-                hsDataSyncer
+                hsDataSyncer,
+                customCurrenciesService
             )
         }
     }

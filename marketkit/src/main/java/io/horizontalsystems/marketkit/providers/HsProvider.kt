@@ -80,7 +80,7 @@ class HsProvider(
     }
 
     fun getCoinPrices(coinUids: List<String>, currencyCode: String): Single<List<CoinPrice>> =
-        customCurrenciesService.fetchCustomCurrency(currencyCode)
+        customCurrenciesService.fetchCustomCurrencySingle(currencyCode)
             .timeout(5, TimeUnit.SECONDS)
             .flatMap { customCurrency ->
                 val coinPricesInDollar = getCoinPricesByDefaultService(coinUids, "USD")
@@ -98,7 +98,7 @@ class HsProvider(
         currencyCode: String,
         timestamp: Long
     ): Single<HistoricalCoinPriceResponse> =
-        customCurrenciesService.fetchCustomCurrency(currencyCode)
+        customCurrenciesService.fetchCustomCurrencySingle(currencyCode)
             .timeout(5, TimeUnit.SECONDS)
             .flatMap { customCurrency ->
                 val historicalCoinPriceInDollar = service.getHistoricalCoinPrice(coinUid, "USD", timestamp)
@@ -113,7 +113,7 @@ class HsProvider(
         periodType: HsPointTimePeriod,
         fromTimestamp: Long?
     ): Single<List<ChartCoinPriceResponse>> =
-        customCurrenciesService.fetchCustomCurrency(currencyCode)
+        customCurrenciesService.fetchCustomCurrencySingle(currencyCode)
             .timeout(5, TimeUnit.SECONDS)
             .flatMap { customCurrency ->
                 val coinPriceChartsInDollar = service.getCoinPriceChart(coinUid, "USD", fromTimestamp, periodType.value)

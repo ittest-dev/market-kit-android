@@ -6,7 +6,8 @@ import kotlin.random.Random
 
 interface CustomCurrenciesService {
 
-  fun fetchCustomCurrency(currencyCode: String) : Single<CustomCurrency?>
+  fun fetchCustomCurrencySingle(currencyCode: String) : Single<CustomCurrency?>
+  fun fetchCustomCurrency(currencyCode: String): CustomCurrency?
   fun customCurrencies(): Single<List<CustomCurrency>>
 
   class Mock() : CustomCurrenciesService {
@@ -17,9 +18,11 @@ interface CustomCurrenciesService {
       CustomCurrency("+257", "BIF", BigDecimal(2839.44 + Random.nextDouble(-2.0, 2.0)), "₣", null),
       CustomCurrency("+258", "MZN", BigDecimal(63.85 + Random.nextDouble(-0.01, 0.01)), "MZN", null)
     )
-    override fun fetchCustomCurrency(currencyCode: String): Single<CustomCurrency?> = Single.just(
+    override fun fetchCustomCurrencySingle(currencyCode: String): Single<CustomCurrency?> = Single.just(
       mockCurrencies.firstOrNull{ it.telephoneCode == currencyCode }
     )
+    override fun fetchCustomCurrency(currencyCode: String): CustomCurrency? =
+      mockCurrencies.firstOrNull{ it.telephoneCode == currencyCode }
     override fun customCurrencies(): Single<List<CustomCurrency>> = Single.just(mockCurrencies)
   }
 }
