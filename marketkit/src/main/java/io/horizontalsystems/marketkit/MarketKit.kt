@@ -20,6 +20,7 @@ import io.reactivex.schedulers.Schedulers
 import java.math.BigDecimal
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.NoSuchElementException
 
 class MarketKit(
     private val nftManager: NftManager,
@@ -135,22 +136,21 @@ class MarketKit(
     // Coin Prices
 
     @SuppressLint("CheckResult")
-    fun refreshCoinPrices(currencyCode: String) =
-        customCurrenciesService.fetchCustomCurrencySingle(currencyCode)
-            .timeout(5, TimeUnit.SECONDS)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { customCurrency ->
-                if (customCurrency == null) {
-                    coinPriceSyncManager.refresh(currencyCode)
-                } else {
-                    coinPriceSyncManager.refresh("USD")
-                }
-            }
+    fun refreshCoinPrices(currencyCode: String) {
+        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+
+        if(customCurrency == null){
+            coinPriceSyncManager.refresh(currencyCode)
+        }else{
+            coinPriceSyncManager.refresh("USD")
+        }
+
+    }
 
 
     fun coinPrice(coinUid: String, currencyCode: String): CoinPrice? {
         val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+
         return if(customCurrency == null)
             coinPriceManager.coinPrice(coinUid, currencyCode)
         else{
@@ -161,6 +161,7 @@ class MarketKit(
 
     fun coinPriceMap(coinUids: List<String>, currencyCode: String): Map<String, CoinPrice> {
         val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+
         return if(customCurrency == null)
             coinPriceManager.coinPriceMap(coinUids, currencyCode)
         else{
@@ -171,30 +172,31 @@ class MarketKit(
     }
 
     fun coinPriceObservable(coinUid: String, currencyCode: String): Observable<CoinPrice> {
-        return customCurrenciesService.fetchCustomCurrencySingle(currencyCode)
-            .timeout(5, TimeUnit.SECONDS)
-            .flatMapObservable { customCurrency ->
-                coinPriceSyncManager.coinPriceObservable(coinUid, "USD")
-                    .map { it.convertValuesToCustomCurrency(customCurrency) }
-            }
-            .onErrorReturnItem(coinPriceSyncManager.coinPriceObservable(coinUid, currencyCode).blockingFirst())
+        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+
+        return if(customCurrency == null){
+            coinPriceSyncManager.coinPriceObservable(coinUid, currencyCode)
+        }else{
+            coinPriceSyncManager.coinPriceObservable(coinUid, "USD")
+                .map { it.convertValuesToCustomCurrency(customCurrency) }
+        }
     }
 
     fun coinPriceMapObservable(
         coinUids: List<String>,
         currencyCode: String
     ): Observable<Map<String, CoinPrice>> {
-        return customCurrenciesService.fetchCustomCurrencySingle(currencyCode)
-            .timeout(5, TimeUnit.SECONDS)
-            .flatMapObservable { customCurrency ->
-                coinPriceSyncManager.coinPriceMapObservable(coinUids, "USD")
-                    .map { coinPriceMap ->
-                        coinPriceMap.mapValues { (_, coinPrice) ->
-                            coinPrice.convertValuesToCustomCurrency(customCurrency)
-                        }
-                    }
+        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+
+        return if(customCurrency == null){
+            coinPriceSyncManager.coinPriceMapObservable(coinUids, currencyCode)
+        }else {
+            coinPriceSyncManager.coinPriceMapObservable(coinUids, "USD").map { coinPriceMap ->
+                coinPriceMap.mapValues { (_, coinPrice) ->
+                    coinPrice.convertValuesToCustomCurrency(customCurrency)
+                }
             }
-            .onErrorReturnItem(coinPriceSyncManager.coinPriceMapObservable(coinUids, currencyCode).blockingFirst())
+        }
     }
 
     // Coin Historical Price
@@ -204,15 +206,17 @@ class MarketKit(
         currencyCode: String,
         timestamp: Long
     ): Single<BigDecimal> {
-        return customCurrenciesService.fetchCustomCurrencySingle(currencyCode)
-            .timeout(5, TimeUnit.SECONDS)
-            .flatMap { customCurrency ->
-                coinHistoricalPriceManager.coinHistoricalPriceSingle(coinUid, "USD", timestamp)
-                    .map { priceUSD ->
-                        priceUSD.multiply(customCurrency.currencyUnitsPerDollar)
-                    }
-            }
-            .onErrorReturnItem(coinHistoricalPriceManager.coinHistoricalPriceSingle(coinUid, currencyCode, timestamp).blockingGet())
+        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+
+        return if(customCurrency == null){
+            coinHistoricalPriceManager.coinHistoricalPriceSingle(coinUid, currencyCode, timestamp)
+        } else{
+            coinHistoricalPriceManager.coinHistoricalPriceSingle(coinUid, "USD", timestamp)
+                .timeout(5, TimeUnit.SECONDS)
+                .map { priceUSD ->
+                    priceUSD.multiply(customCurrency.currencyUnitsPerDollar)
+                }
+        }
     }
 
     fun coinHistoricalPrice(coinUid: String, currencyCode: String, timestamp: Long): BigDecimal? {
@@ -222,11 +226,11 @@ class MarketKit(
             null
         }
 
-        return if (customCurrency != null) {
+        return if (customCurrency == null) {
+            coinHistoricalPriceManager.coinHistoricalPrice(coinUid, currencyCode, timestamp)
+        } else {
             val priceUSD = coinHistoricalPriceManager.coinHistoricalPrice(coinUid, "USD", timestamp)
             priceUSD?.multiply(customCurrency.currencyUnitsPerDollar)
-        } else {
-            coinHistoricalPriceManager.coinHistoricalPrice(coinUid, currencyCode, timestamp)
         }
     }
 

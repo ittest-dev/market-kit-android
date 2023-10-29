@@ -79,53 +79,56 @@ class HsProvider(
             }
     }
 
-    fun getCoinPrices(coinUids: List<String>, currencyCode: String): Single<List<CoinPrice>> =
-        customCurrenciesService.fetchCustomCurrencySingle(currencyCode)
-            .timeout(5, TimeUnit.SECONDS)
-            .flatMap { customCurrency ->
-                val coinPricesInDollar = getCoinPricesByDefaultService(coinUids, "USD")
-                coinPricesInDollar.map { prices ->
-                    prices.map { coinPriceInDollar ->
-                        coinPriceInDollar.convertValuesToCustomCurrency(customCurrency)
-                    }
+    fun getCoinPrices(coinUids: List<String>, currencyCode: String): Single<List<CoinPrice>> {
+        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+
+        return if(customCurrency == null){
+            getCoinPricesByDefaultService(coinUids, currencyCode)
+        }else{
+            val coinPricesInDollar = getCoinPricesByDefaultService(coinUids, "USD")
+            coinPricesInDollar.map { prices ->
+                prices.map { coinPriceInDollar ->
+                    coinPriceInDollar.convertValuesToCustomCurrency(customCurrency)
                 }
             }
-            .onErrorResumeNext { getCoinPricesByDefaultService(coinUids, currencyCode) }
+        }
+    }
 
 
     fun historicalCoinPriceSingle(
         coinUid: String,
         currencyCode: String,
         timestamp: Long
-    ): Single<HistoricalCoinPriceResponse> =
-        customCurrenciesService.fetchCustomCurrencySingle(currencyCode)
-            .timeout(5, TimeUnit.SECONDS)
-            .flatMap { customCurrency ->
-                val historicalCoinPriceInDollar = service.getHistoricalCoinPrice(coinUid, "USD", timestamp)
-                historicalCoinPriceInDollar.map { it.convertValuesToCustomCurrency(customCurrency) }
-            }
-            .onErrorResumeNext { service.getHistoricalCoinPrice(coinUid, currencyCode, timestamp) }
+    ): Single<HistoricalCoinPriceResponse> {
+        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
 
+        return if(customCurrency == null){
+            service.getHistoricalCoinPrice(coinUid, currencyCode, timestamp)
+        }else{
+            val historicalCoinPriceInDollar = service.getHistoricalCoinPrice(coinUid, "USD", timestamp)
+            historicalCoinPriceInDollar.map { it.convertValuesToCustomCurrency(customCurrency) }
+        }
+    }
 
     fun coinPriceChartSingle(
         coinUid: String,
         currencyCode: String,
         periodType: HsPointTimePeriod,
         fromTimestamp: Long?
-    ): Single<List<ChartCoinPriceResponse>> =
-        customCurrenciesService.fetchCustomCurrencySingle(currencyCode)
-            .timeout(5, TimeUnit.SECONDS)
-            .flatMap { customCurrency ->
-                val coinPriceChartsInDollar = service.getCoinPriceChart(coinUid, "USD", fromTimestamp, periodType.value)
-                coinPriceChartsInDollar.map { prices ->
-                    prices.map { coinPriceChartInDollar ->
-                        coinPriceChartInDollar.convertValuesToCustomCurrency(customCurrency)
-                    }
+    ): Single<List<ChartCoinPriceResponse>> {
+        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+
+        return if(customCurrency == null){
+            service.getCoinPriceChart(coinUid, currencyCode, fromTimestamp, periodType.value)
+        }else{
+            val coinPriceChartsInDollar = service.getCoinPriceChart(coinUid, "USD", fromTimestamp, periodType.value)
+            coinPriceChartsInDollar.map { prices ->
+                prices.map { coinPriceChartInDollar ->
+                    coinPriceChartInDollar.convertValuesToCustomCurrency(customCurrency)
                 }
             }
-            .onErrorResumeNext { service.getCoinPriceChart(coinUid, currencyCode, fromTimestamp, periodType.value) }
-
-
+        }
+    }
 
     fun coinPriceChartStartTime(coinUid: String): Single<Long> {
         return service.getCoinPriceChartStart(coinUid).map { it.timestamp }

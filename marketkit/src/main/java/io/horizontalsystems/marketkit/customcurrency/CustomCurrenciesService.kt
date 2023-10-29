@@ -18,9 +18,15 @@ interface CustomCurrenciesService {
       CustomCurrency("+257", "BIF", BigDecimal(2839.44 + Random.nextDouble(-2.0, 2.0)), "₣", null),
       CustomCurrency("+258", "MZN", BigDecimal(63.85 + Random.nextDouble(-0.01, 0.01)), "MZN", null)
     )
-    override fun fetchCustomCurrencySingle(currencyCode: String): Single<CustomCurrency?> = Single.just(
-      mockCurrencies.firstOrNull{ it.telephoneCode == currencyCode }
-    )
+    override fun fetchCustomCurrencySingle(currencyCode: String): Single<CustomCurrency?> {
+      return try {
+        Single.just(mockCurrencies.firstOrNull{ it.telephoneCode == currencyCode })
+      } catch (e : NoSuchElementException){
+        Single.just(null)
+      } catch (e : Exception){
+        Single.error(e)
+      }
+    }
     override fun fetchCustomCurrency(currencyCode: String): CustomCurrency? =
       mockCurrencies.firstOrNull{ it.telephoneCode == currencyCode }
     override fun customCurrencies(): Single<List<CustomCurrency>> = Single.just(mockCurrencies)
