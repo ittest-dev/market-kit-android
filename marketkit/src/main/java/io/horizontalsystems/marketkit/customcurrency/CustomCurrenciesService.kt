@@ -20,7 +20,7 @@ interface CustomCurrenciesService {
     )
     override fun fetchCustomCurrencySingle(currencyCode: String): Single<CustomCurrency?> {
       return try {
-        Single.just(mockCurrencies.firstOrNull{ it.telephoneCode == currencyCode })
+        Single.just(mockCurrencies.firstOrNull{ it.currencyCode == currencyCode })
       } catch (e : NoSuchElementException){
         Single.just(null)
       } catch (e : Exception){
@@ -28,7 +28,7 @@ interface CustomCurrenciesService {
       }
     }
     override fun fetchCustomCurrency(currencyCode: String): CustomCurrency? =
-      mockCurrencies.firstOrNull{ it.telephoneCode == currencyCode }
+      mockCurrencies.firstOrNull{ it.currencyCode == currencyCode }
     override fun customCurrencies(): Single<List<CustomCurrency>> = Single.just(mockCurrencies)
   }
 }
