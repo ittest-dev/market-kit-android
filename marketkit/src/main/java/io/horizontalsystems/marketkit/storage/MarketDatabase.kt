@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
+import io.horizontalsystems.marketkit.customcurrency.CustomCurrencyDao
 import io.horizontalsystems.marketkit.models.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -35,6 +36,7 @@ abstract class MarketDatabase : RoomDatabase() {
     abstract fun globalMarketInfoDao(): GlobalMarketInfoDao
     abstract fun exchangeDao(): ExchangeDao
     abstract fun syncerStateDao(): SyncerStateDao
+    abstract fun customCurrencyDao(): CustomCurrencyDao
 
     companion object {
 

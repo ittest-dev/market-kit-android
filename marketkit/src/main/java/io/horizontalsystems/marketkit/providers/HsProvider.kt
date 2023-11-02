@@ -1,7 +1,7 @@
 package io.horizontalsystems.marketkit.providers
 
 import com.google.gson.annotations.SerializedName
-import io.horizontalsystems.marketkit.customcurrency.CustomCurrenciesService
+import io.horizontalsystems.marketkit.customcurrency.CustomCurrenciesManager
 import io.horizontalsystems.marketkit.customcurrency.convertValuesToCustomCurrency
 import io.horizontalsystems.marketkit.models.*
 import io.reactivex.Single
@@ -14,12 +14,11 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 import java.math.BigDecimal
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 class HsProvider(
     baseUrl: String,
     apiKey: String,
-    private val customCurrenciesService: CustomCurrenciesService
+    private val customCurrenciesManager: CustomCurrenciesManager
 ) {
 
     private val service by lazy {
@@ -80,7 +79,7 @@ class HsProvider(
     }
 
     fun getCoinPrices(coinUids: List<String>, currencyCode: String): Single<List<CoinPrice>> {
-        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+        val customCurrency = customCurrenciesManager.fetchCustomCurrency(currencyCode)
 
         return if(customCurrency == null){
             getCoinPricesByDefaultService(coinUids, currencyCode)
@@ -100,7 +99,7 @@ class HsProvider(
         currencyCode: String,
         timestamp: Long
     ): Single<HistoricalCoinPriceResponse> {
-        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+        val customCurrency = customCurrenciesManager.fetchCustomCurrency(currencyCode)
 
         return if(customCurrency == null){
             service.getHistoricalCoinPrice(coinUid, currencyCode, timestamp)
@@ -116,7 +115,7 @@ class HsProvider(
         periodType: HsPointTimePeriod,
         fromTimestamp: Long?
     ): Single<List<ChartCoinPriceResponse>> {
-        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+        val customCurrency = customCurrenciesManager.fetchCustomCurrency(currencyCode)
 
         return if(customCurrency == null){
             service.getCoinPriceChart(coinUid, currencyCode, fromTimestamp, periodType.value)

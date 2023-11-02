@@ -4,7 +4,9 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.storage.StorageManager
 import io.horizontalsystems.marketkit.chart.HsChartRequestHelper
-import io.horizontalsystems.marketkit.customcurrency.CustomCurrenciesService
+import io.horizontalsystems.marketkit.customcurrency.CustomCurrenciesManager
+import io.horizontalsystems.marketkit.customcurrency.CustomCurrencyProvider
+import io.horizontalsystems.marketkit.customcurrency.CustomCurrencyStorage
 import io.horizontalsystems.marketkit.customcurrency.convertValuesToCustomCurrency
 import io.horizontalsystems.marketkit.managers.*
 import io.horizontalsystems.marketkit.models.*
@@ -15,12 +17,9 @@ import io.horizontalsystems.marketkit.syncers.ExchangeSyncer
 import io.horizontalsystems.marketkit.syncers.HsDataSyncer
 import io.reactivex.Observable
 import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import java.math.BigDecimal
 import java.util.*
 import java.util.concurrent.TimeUnit
-import kotlin.NoSuchElementException
 
 class MarketKit(
     private val nftManager: NftManager,
@@ -35,7 +34,7 @@ class MarketKit(
     private val globalMarketInfoManager: GlobalMarketInfoManager,
     private val hsProvider: HsProvider,
     private val hsDataSyncer: HsDataSyncer,
-    private val customCurrenciesService: CustomCurrenciesService
+    private val customCurrenciesManager: CustomCurrenciesManager
 ) {
     // Coins
 
@@ -137,7 +136,7 @@ class MarketKit(
 
     @SuppressLint("CheckResult")
     fun refreshCoinPrices(currencyCode: String) {
-        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+        val customCurrency = customCurrenciesManager.fetchCustomCurrency(currencyCode)
 
         if(customCurrency == null){
             coinPriceSyncManager.refresh(currencyCode)
@@ -149,7 +148,7 @@ class MarketKit(
 
 
     fun coinPrice(coinUid: String, currencyCode: String): CoinPrice? {
-        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+        val customCurrency = customCurrenciesManager.fetchCustomCurrency(currencyCode)
 
         return if(customCurrency == null)
             coinPriceManager.coinPrice(coinUid, currencyCode)
@@ -160,7 +159,7 @@ class MarketKit(
     }
 
     fun coinPriceMap(coinUids: List<String>, currencyCode: String): Map<String, CoinPrice> {
-        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+        val customCurrency = customCurrenciesManager.fetchCustomCurrency(currencyCode)
 
         return if(customCurrency == null)
             coinPriceManager.coinPriceMap(coinUids, currencyCode)
@@ -172,7 +171,7 @@ class MarketKit(
     }
 
     fun coinPriceObservable(coinUid: String, currencyCode: String): Observable<CoinPrice> {
-        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+        val customCurrency = customCurrenciesManager.fetchCustomCurrency(currencyCode)
 
         return if(customCurrency == null){
             coinPriceSyncManager.coinPriceObservable(coinUid, currencyCode)
@@ -186,7 +185,7 @@ class MarketKit(
         coinUids: List<String>,
         currencyCode: String
     ): Observable<Map<String, CoinPrice>> {
-        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+        val customCurrency = customCurrenciesManager.fetchCustomCurrency(currencyCode)
 
         return if(customCurrency == null){
             coinPriceSyncManager.coinPriceMapObservable(coinUids, currencyCode)
@@ -206,7 +205,7 @@ class MarketKit(
         currencyCode: String,
         timestamp: Long
     ): Single<BigDecimal> {
-        val customCurrency = customCurrenciesService.fetchCustomCurrency(currencyCode)
+        val customCurrency = customCurrenciesManager.fetchCustomCurrency(currencyCode)
 
         return if(customCurrency == null){
             coinHistoricalPriceManager.coinHistoricalPriceSingle(coinUid, currencyCode, timestamp)
@@ -221,7 +220,7 @@ class MarketKit(
 
     fun coinHistoricalPrice(coinUid: String, currencyCode: String, timestamp: Long): BigDecimal? {
         val customCurrency = try {
-            customCurrenciesService.fetchCustomCurrency(currencyCode)
+            customCurrenciesManager.fetchCustomCurrency(currencyCode)
         } catch (e: Exception) {
             null
         }
@@ -468,8 +467,10 @@ class MarketKit(
             }
 
             val marketDatabase = MarketDatabase.getInstance(context)
-            val customCurrenciesService = CustomCurrenciesService.Mock()
-            val hsProvider = HsProvider(hsApiBaseUrl, hsApiKey,customCurrenciesService)
+            val customCurrenciesStorage = CustomCurrencyStorage(marketDatabase)
+            val customCurrenciesProvider = CustomCurrencyProvider.Mock()
+            val customCurrenciesManager = CustomCurrenciesManager.Base(customCurrenciesStorage,customCurrenciesProvider)
+            val hsProvider = HsProvider(hsApiBaseUrl, hsApiKey,customCurrenciesManager)
             val hsNftProvider = HsNftProvider(hsApiBaseUrl, hsApiKey)
             val coinGeckoProvider = CoinGeckoProvider("https://api.coingecko.com/api/v3/")
             val defiYieldProvider = DefiYieldProvider(defiYieldApiKey)
@@ -507,7 +508,7 @@ class MarketKit(
                 globalMarketInfoManager,
                 hsProvider,
                 hsDataSyncer,
-                customCurrenciesService
+                customCurrenciesManager
             )
         }
     }

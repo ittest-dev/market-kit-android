@@ -11,23 +11,34 @@ import io.horizontalsystems.marketkit.providers.HistoricalCoinPriceResponse
 import java.math.BigDecimal
 
 data class CustomCurrency(
-  val telephoneCode: String?,
-  val currencyCode: String?,
-  val currencyUnitsPerDollar: BigDecimal?,
-  val symbol: String?,
-  val icon: String?
+    val currencyCode: String,
+    val telephoneCode: String?,
+    val currencyUnitsPerDollar: BigDecimal?,
+    val symbol: String?,
+    val icon: String?
+) {
+    fun toEntity() = CustomCurrencyEntity(
+        currencyCode = currencyCode,
+        telephoneCode = telephoneCode,
+        currencyUnitsPerDollar = currencyUnitsPerDollar,
+        symbol = symbol,
+        icon = icon,
+    )
+}
+
+fun CoinPrice.convertValuesToCustomCurrency(customCurrency: CustomCurrency): CoinPrice = this.copy(
+    currencyCode = customCurrency.currencyCode
+        ?: throw IllegalStateException("currencyCode is null"),
+    value = this.value.multiply(customCurrency.currencyUnitsPerDollar)
 )
 
-fun CoinPrice.convertValuesToCustomCurrency(customCurrency: CustomCurrency) : CoinPrice = this.copy(
-  currencyCode = customCurrency.currencyCode ?: throw IllegalStateException("currencyCode is null"),
-  value = this.value.multiply(customCurrency.currencyUnitsPerDollar)
-)
+fun HistoricalCoinPriceResponse.convertValuesToCustomCurrency(customCurrency: CustomCurrency): HistoricalCoinPriceResponse =
+    this.copy(
+        price = this.price.multiply(customCurrency.currencyUnitsPerDollar)
+    )
 
-fun HistoricalCoinPriceResponse.convertValuesToCustomCurrency(customCurrency: CustomCurrency) : HistoricalCoinPriceResponse = this.copy(
-  price = this.price.multiply(customCurrency.currencyUnitsPerDollar)
-)
-
-fun ChartCoinPriceResponse.convertValuesToCustomCurrency(customCurrency: CustomCurrency) : ChartCoinPriceResponse = this.copy(
-  price = this.price.multiply(customCurrency.currencyUnitsPerDollar),
-  totalVolume = this.totalVolume?.multiply(customCurrency.currencyUnitsPerDollar)
-)
+fun ChartCoinPriceResponse.convertValuesToCustomCurrency(customCurrency: CustomCurrency): ChartCoinPriceResponse =
+    this.copy(
+        price = this.price.multiply(customCurrency.currencyUnitsPerDollar),
+        totalVolume = this.totalVolume?.multiply(customCurrency.currencyUnitsPerDollar)
+    )
