@@ -1,6 +1,7 @@
 package io.horizontalsystems.marketkit.providers
 
 import com.google.gson.annotations.SerializedName
+import io.horizontalsystems.marketkit.inoi.addInoi
 import io.horizontalsystems.marketkit.inoi.customcurrency.CustomCurrenciesManager
 import io.horizontalsystems.marketkit.inoi.customcurrency.convertValuesToCustomCurrency
 import io.horizontalsystems.marketkit.models.*
@@ -69,12 +70,7 @@ class HsProvider(
             .map { coinPrices ->
                 coinPrices.mapNotNull { coinPriceResponse ->
                     coinPriceResponse.coinPrice(currencyCode)
-                }.plus(
-                    listOf(
-                        CoinPrice("inoi", currencyCode, BigDecimal(1), null, 0),
-                        CoinPrice("inoiTest", currencyCode, BigDecimal(1), null, 0)
-                    )
-                )
+                }.addInoi(currencyCode)
             }
     }
 
