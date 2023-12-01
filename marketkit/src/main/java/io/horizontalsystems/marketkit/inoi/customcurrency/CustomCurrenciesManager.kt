@@ -1,8 +1,7 @@
-package io.horizontalsystems.marketkit.customcurrency
+package io.horizontalsystems.marketkit.inoi.customcurrency
 
 import android.annotation.SuppressLint
 import android.util.Log
-import io.reactivex.Single
 import java.math.BigDecimal
 import kotlin.random.Random
 

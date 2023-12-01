@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-package io.horizontalsystems.marketkit.customcurrency
+package io.horizontalsystems.marketkit.inoi.customcurrency
 
 import io.horizontalsystems.marketkit.models.CoinPrice
 import io.horizontalsystems.marketkit.providers.ChartCoinPriceResponse

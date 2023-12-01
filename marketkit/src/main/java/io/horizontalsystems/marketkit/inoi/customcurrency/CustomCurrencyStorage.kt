@@ -1,6 +1,5 @@
-package io.horizontalsystems.marketkit.customcurrency
+package io.horizontalsystems.marketkit.inoi.customcurrency
 
-import io.horizontalsystems.marketkit.models.CoinHistoricalPrice
 import io.horizontalsystems.marketkit.storage.MarketDatabase
 
 class CustomCurrencyStorage(marketDatabase: MarketDatabase) {

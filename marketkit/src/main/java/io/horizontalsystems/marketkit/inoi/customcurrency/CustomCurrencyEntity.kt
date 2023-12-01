@@ -1,4 +1,4 @@
-package io.horizontalsystems.marketkit.customcurrency
+package io.horizontalsystems.marketkit.inoi.customcurrency
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

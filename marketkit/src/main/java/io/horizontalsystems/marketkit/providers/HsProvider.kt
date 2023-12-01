@@ -1,8 +1,8 @@
 package io.horizontalsystems.marketkit.providers
 
 import com.google.gson.annotations.SerializedName
-import io.horizontalsystems.marketkit.customcurrency.CustomCurrenciesManager
-import io.horizontalsystems.marketkit.customcurrency.convertValuesToCustomCurrency
+import io.horizontalsystems.marketkit.inoi.customcurrency.CustomCurrenciesManager
+import io.horizontalsystems.marketkit.inoi.customcurrency.convertValuesToCustomCurrency
 import io.horizontalsystems.marketkit.models.*
 import io.reactivex.Single
 import retrofit2.http.Field

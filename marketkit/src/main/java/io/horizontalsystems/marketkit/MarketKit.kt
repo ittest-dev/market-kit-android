@@ -4,10 +4,10 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.storage.StorageManager
 import io.horizontalsystems.marketkit.chart.HsChartRequestHelper
-import io.horizontalsystems.marketkit.customcurrency.CustomCurrenciesManager
-import io.horizontalsystems.marketkit.customcurrency.CustomCurrencyProvider
-import io.horizontalsystems.marketkit.customcurrency.CustomCurrencyStorage
-import io.horizontalsystems.marketkit.customcurrency.convertValuesToCustomCurrency
+import io.horizontalsystems.marketkit.inoi.customcurrency.CustomCurrenciesManager
+import io.horizontalsystems.marketkit.inoi.customcurrency.CustomCurrencyProvider
+import io.horizontalsystems.marketkit.inoi.customcurrency.CustomCurrencyStorage
+import io.horizontalsystems.marketkit.inoi.customcurrency.convertValuesToCustomCurrency
 import io.horizontalsystems.marketkit.managers.*
 import io.horizontalsystems.marketkit.models.*
 import io.horizontalsystems.marketkit.providers.*

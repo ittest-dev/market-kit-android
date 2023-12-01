@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
-import io.horizontalsystems.marketkit.customcurrency.CustomCurrencyDao
+import io.horizontalsystems.marketkit.inoi.customcurrency.CustomCurrencyDao
 import io.horizontalsystems.marketkit.models.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
