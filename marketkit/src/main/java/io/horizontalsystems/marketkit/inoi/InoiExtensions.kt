@@ -2,13 +2,8 @@ package io.horizontalsystems.marketkit.inoi
 
 import io.horizontalsystems.marketkit.inoi.customcurrency.CustomCurrenciesManager
 import io.horizontalsystems.marketkit.inoi.customcurrency.CustomCurrency
-import io.horizontalsystems.marketkit.inoi.customcurrency.CustomCurrencyProvider
-import io.horizontalsystems.marketkit.inoi.customcurrency.CustomCurrencyStorage
-import io.horizontalsystems.marketkit.managers.CoinPriceManager
-import io.horizontalsystems.marketkit.managers.CoinPriceSyncManager
 import io.horizontalsystems.marketkit.models.Coin
 import io.horizontalsystems.marketkit.models.CoinPrice
-import io.horizontalsystems.marketkit.models.CoinPriceResponse
 import io.horizontalsystems.marketkit.models.TokenEntity
 import io.reactivex.Single
 import java.math.BigDecimal

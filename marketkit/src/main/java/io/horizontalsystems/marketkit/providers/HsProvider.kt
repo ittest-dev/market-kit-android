@@ -79,8 +79,8 @@ class HsProvider(
         return withCustomCurrency(
             customCurrenciesManager,
             currencyCode,
-            { code -> getCoinPricesByDefaultService(coinUids, code) },
-            { customCurrencyInfo, pricesInDollar -> pricesInDollar.map { it.convertValuesToCustomCurrency(customCurrencyInfo) } }
+            defaultAction = { code -> getCoinPricesByDefaultService(coinUids, code) },
+            customAction = { customCurrencyInfo, pricesInDollar -> pricesInDollar.map { it.convertValuesToCustomCurrency(customCurrencyInfo) } }
         )
     }
 
@@ -92,8 +92,8 @@ class HsProvider(
         return withCustomCurrency(
             customCurrenciesManager,
             currencyCode,
-            { code -> service.getHistoricalCoinPrice(coinUid, code, timestamp) },
-            { customCurrencyInfo, pricesInDollar -> pricesInDollar.convertValuesToCustomCurrency(customCurrencyInfo) }
+            defaultAction = { code -> service.getHistoricalCoinPrice(coinUid, code, timestamp) },
+            customAction = { customCurrencyInfo, pricesInDollar -> pricesInDollar.convertValuesToCustomCurrency(customCurrencyInfo) }
         )
     }
 
@@ -106,8 +106,8 @@ class HsProvider(
         return withCustomCurrency(
             customCurrenciesManager,
             currencyCode,
-            { code -> service.getCoinPriceChart(coinUid, code, fromTimestamp, periodType.value) },
-            { customCurrencyInfo, pricesInDollar -> pricesInDollar.map { it.convertValuesToCustomCurrency(customCurrencyInfo) } }
+            defaultAction = { code -> service.getCoinPriceChart(coinUid, code, fromTimestamp, periodType.value) },
+            customAction = { customCurrencyInfo, pricesInDollar -> pricesInDollar.map { it.convertValuesToCustomCurrency(customCurrencyInfo) } }
         )
     }
 
