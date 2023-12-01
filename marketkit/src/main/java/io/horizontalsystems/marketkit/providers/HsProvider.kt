@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName
 import io.horizontalsystems.marketkit.inoi.addInoi
 import io.horizontalsystems.marketkit.inoi.customcurrency.CustomCurrenciesManager
 import io.horizontalsystems.marketkit.inoi.customcurrency.convertValuesToCustomCurrency
+import io.horizontalsystems.marketkit.inoi.withCustomCurrency
 import io.horizontalsystems.marketkit.models.*
 import io.reactivex.Single
 import retrofit2.http.Field
@@ -75,34 +76,25 @@ class HsProvider(
     }
 
     fun getCoinPrices(coinUids: List<String>, currencyCode: String): Single<List<CoinPrice>> {
-        val customCurrency = customCurrenciesManager.fetchCustomCurrency(currencyCode)
-
-        return if(customCurrency == null){
-            getCoinPricesByDefaultService(coinUids, currencyCode)
-        }else{
-            val coinPricesInDollar = getCoinPricesByDefaultService(coinUids, "USD")
-            coinPricesInDollar.map { prices ->
-                prices.map { coinPriceInDollar ->
-                    coinPriceInDollar.convertValuesToCustomCurrency(customCurrency)
-                }
-            }
-        }
+        return withCustomCurrency(
+            customCurrenciesManager,
+            currencyCode,
+            { code -> getCoinPricesByDefaultService(coinUids, code) },
+            { customCurrencyInfo, pricesInDollar -> pricesInDollar.map { it.convertValuesToCustomCurrency(customCurrencyInfo) } }
+        )
     }
-
 
     fun historicalCoinPriceSingle(
         coinUid: String,
         currencyCode: String,
         timestamp: Long
     ): Single<HistoricalCoinPriceResponse> {
-        val customCurrency = customCurrenciesManager.fetchCustomCurrency(currencyCode)
-
-        return if(customCurrency == null){
-            service.getHistoricalCoinPrice(coinUid, currencyCode, timestamp)
-        }else{
-            val historicalCoinPriceInDollar = service.getHistoricalCoinPrice(coinUid, "USD", timestamp)
-            historicalCoinPriceInDollar.map { it.convertValuesToCustomCurrency(customCurrency) }
-        }
+        return withCustomCurrency(
+            customCurrenciesManager,
+            currencyCode,
+            { code -> service.getHistoricalCoinPrice(coinUid, code, timestamp) },
+            { customCurrencyInfo, pricesInDollar -> pricesInDollar.convertValuesToCustomCurrency(customCurrencyInfo) }
+        )
     }
 
     fun coinPriceChartSingle(
@@ -111,18 +103,12 @@ class HsProvider(
         periodType: HsPointTimePeriod,
         fromTimestamp: Long?
     ): Single<List<ChartCoinPriceResponse>> {
-        val customCurrency = customCurrenciesManager.fetchCustomCurrency(currencyCode)
-
-        return if(customCurrency == null){
-            service.getCoinPriceChart(coinUid, currencyCode, fromTimestamp, periodType.value)
-        }else{
-            val coinPriceChartsInDollar = service.getCoinPriceChart(coinUid, "USD", fromTimestamp, periodType.value)
-            coinPriceChartsInDollar.map { prices ->
-                prices.map { coinPriceChartInDollar ->
-                    coinPriceChartInDollar.convertValuesToCustomCurrency(customCurrency)
-                }
-            }
-        }
+        return withCustomCurrency(
+            customCurrenciesManager,
+            currencyCode,
+            { code -> service.getCoinPriceChart(coinUid, code, fromTimestamp, periodType.value) },
+            { customCurrencyInfo, pricesInDollar -> pricesInDollar.map { it.convertValuesToCustomCurrency(customCurrencyInfo) } }
+        )
     }
 
     fun coinPriceChartStartTime(coinUid: String): Single<Long> {
