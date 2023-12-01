@@ -6,6 +6,9 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
+import io.horizontalsystems.marketkit.inoi.customcurrency.CustomCurrency
+import io.horizontalsystems.marketkit.inoi.customcurrency.CustomCurrencyDao
+import io.horizontalsystems.marketkit.inoi.customcurrency.CustomCurrencyEntity
 import io.horizontalsystems.marketkit.models.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -23,6 +26,7 @@ import java.util.logging.Logger
         GlobalMarketInfo::class,
         Exchange::class,
         SyncerState::class,
+        CustomCurrencyEntity::class,
     ],
     version = 9,
     exportSchema = false
@@ -37,6 +41,7 @@ abstract class MarketDatabase : RoomDatabase() {
     abstract fun syncerStateDao(): SyncerStateDao
     abstract fun blockchainEntityDao(): BlockchainEntityDao
     abstract fun tokenEntityDao(): TokenEntityDao
+    abstract fun customCurrencyDao(): CustomCurrencyDao
 
     companion object {
 
