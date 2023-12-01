@@ -1,11 +1,8 @@
 package io.horizontalsystems.marketkit.inoi
 
-import io.horizontalsystems.marketkit.inoi.customcurrency.CustomCurrenciesManager
-import io.horizontalsystems.marketkit.inoi.customcurrency.CustomCurrency
 import io.horizontalsystems.marketkit.models.Coin
 import io.horizontalsystems.marketkit.models.CoinPrice
 import io.horizontalsystems.marketkit.models.TokenEntity
-import io.reactivex.Single
 import java.math.BigDecimal
 
 val inoiCoin = Coin(
@@ -47,16 +44,3 @@ fun List<CoinPrice>.addInoi(currencyCode: String) = this.plus(
         CoinPrice("inoiTest", currencyCode, BigDecimal(1), null, 0)
     )
 )
-
-fun <T> withCustomCurrency(
-    customCurrenciesManager : CustomCurrenciesManager,
-    currencyCode: String,
-    defaultAction: (String) -> Single<T>,
-    customAction: (CustomCurrency, T) -> T
-): Single<T> {
-    val customCurrency = customCurrenciesManager.fetchCustomCurrency(currencyCode)
-    val actionCurrencyCode = customCurrency?.let { "USD" } ?: currencyCode
-    return defaultAction(actionCurrencyCode).map { data ->
-        customCurrency?.let { customAction(it, data) } ?: data
-    }
-}

@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 import io.horizontalsystems.marketkit.inoi.addInoi
 import io.horizontalsystems.marketkit.inoi.customcurrency.CustomCurrenciesManager
 import io.horizontalsystems.marketkit.inoi.customcurrency.convertValuesToCustomCurrency
-import io.horizontalsystems.marketkit.inoi.withCustomCurrency
+import io.horizontalsystems.marketkit.inoi.hsProviderSwitch
 import io.horizontalsystems.marketkit.models.*
 import io.reactivex.Single
 import retrofit2.http.Field
@@ -76,7 +76,7 @@ class HsProvider(
     }
 
     fun getCoinPrices(coinUids: List<String>, currencyCode: String): Single<List<CoinPrice>> {
-        return withCustomCurrency(
+        return hsProviderSwitch(
             customCurrenciesManager,
             currencyCode,
             defaultAction = { code -> getCoinPricesByDefaultService(coinUids, code) },
@@ -89,7 +89,7 @@ class HsProvider(
         currencyCode: String,
         timestamp: Long
     ): Single<HistoricalCoinPriceResponse> {
-        return withCustomCurrency(
+        return hsProviderSwitch(
             customCurrenciesManager,
             currencyCode,
             defaultAction = { code -> service.getHistoricalCoinPrice(coinUid, code, timestamp) },
@@ -103,7 +103,7 @@ class HsProvider(
         periodType: HsPointTimePeriod,
         fromTimestamp: Long?
     ): Single<List<ChartCoinPriceResponse>> {
-        return withCustomCurrency(
+        return hsProviderSwitch(
             customCurrenciesManager,
             currencyCode,
             defaultAction = { code -> service.getCoinPriceChart(coinUid, code, fromTimestamp, periodType.value) },
