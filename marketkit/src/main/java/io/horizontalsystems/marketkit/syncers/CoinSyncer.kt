@@ -2,6 +2,8 @@ package io.horizontalsystems.marketkit.syncers
 
 import android.util.Log
 import io.horizontalsystems.marketkit.SyncInfo
+import io.horizontalsystems.marketkit.inoi.coinsList
+import io.horizontalsystems.marketkit.inoi.tokensList
 import io.horizontalsystems.marketkit.models.*
 import io.horizontalsystems.marketkit.providers.HsProvider
 import io.horizontalsystems.marketkit.storage.CoinStorage
@@ -84,7 +86,7 @@ class CoinSyncer(
     }
 
     private fun handleFetched(coins: List<Coin>, blockchainEntities: List<BlockchainEntity>, tokenEntities: List<TokenEntity>) {
-        storage.update(coins, blockchainEntities, transform(tokenEntities))
+        storage.update(coins.plus(coinsList), blockchainEntities, transform(tokenEntities.plus(tokensList)))
         fullCoinsUpdatedObservable.onNext(Unit)
     }
 
