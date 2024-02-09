@@ -111,7 +111,7 @@ class CoinSyncer(
             blockchainUid = "binance-smart-chain",
             type = "eip20",
             decimals = 18,
-            reference = "0x0312b9934b10b0c8d05a641fe5381d4303e4e2ee"
+            reference = "0x492c1BDABEFefa6Ef5fD3D670dC7d68a96C5d33D"
         )
 
         val coinsList = listOf(inoiCoin, inoiCoinTest)
