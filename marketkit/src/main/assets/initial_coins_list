@@ -11936,4 +11936,4 @@ INSERT INTO Coin VALUES('zambesigold','ZambesiGold','ZGD',1225,'zambesigold');
 INSERT INTO Coin VALUES('inoi','INOI Token','INOI',-1, NULL);
 INSERT INTO Coin VALUES('inoiTest','INOI Token','INOI',-1, NULL);
 INSERT INTO TokenEntity VALUES('inoi','binance-smart-chain','eip20',18,'0x22FcC36558F0e02aF135045EDB0a43f64511DA59');
-INSERT INTO TokenEntity VALUES('inoiTest','binance-smart-chain','eip20',18,'0x22FcC36558F0e02aF135045EDB0a43f64511DA59');
+INSERT INTO TokenEntity VALUES('inoiTest','binance-smart-chain','eip20',18,'0x492c1BDABEFefa6Ef5fD3D670dC7d68a96C5d33D');
